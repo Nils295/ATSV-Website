@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="de" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Verwaltung – Ahrensburger TSV Leichtathletik</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { atsvBlue:'#004B93', atsvBlueDark:'#003366', atsvRed:'#E63946', atsvOrange:'#F97316', atsvDark:'#0F172A' }, fontFamily:{ sans:['Inter','sans-serif'], display:['Montserrat','sans-serif'] } } }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-display { font-family: 'Montserrat', sans-serif; }
+        ::-webkit-scrollbar { height: 6px; width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <div id="toast-container" class="fixed bottom-5 right-5 left-5 sm:left-auto z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Admin Quick Toolbar (always shown on admin page) -->
+    <div id="admin-quick-toolbar" class="hidden bg-amber-400 text-slate-950 border-b border-amber-500 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+            <div class="flex items-center gap-2">
+                <span class="bg-slate-900 text-amber-400 px-2.5 py-1 rounded-md uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-shield-halved"></i> Redaktions-Modus</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <button onclick="switchAdminSubTab('hero')" class="bg-white/90 hover:bg-white text-slate-900 px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1"><i class="fa-solid fa-image text-atsvBlue"></i> <span>Hero</span></button>
+                <button onclick="switchAdminSubTab('blog')" class="bg-white/90 hover:bg-white text-slate-900 px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1"><i class="fa-solid fa-pen-nib text-atsvBlue"></i> <span>Blog</span></button>
+                <button onclick="switchAdminSubTab('training')" class="bg-white/90 hover:bg-white text-slate-900 px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1"><i class="fa-solid fa-stopwatch text-atsvRed"></i> <span>Training</span></button>
+                <button onclick="switchAdminSubTab('events')" class="bg-white/90 hover:bg-white text-slate-900 px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1"><i class="fa-solid fa-calendar-plus text-emerald-700"></i> <span>Termine</span></button>
+                <button onclick="toggleAdminMode()" class="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition ml-1">Admin beenden</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Info Bar -->
+    <div class="bg-atsvBlueDark text-white text-xs py-2 px-4 border-b border-white/10">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="flex items-center gap-2 text-center sm:text-left">
+                <span class="bg-atsvRed text-white px-2 py-0.5 rounded font-bold text-[10px] uppercase tracking-wider shrink-0">ATSV 1874</span>
+                <span class="truncate">Stormarnplatz &amp; Sportplatz Am Reesenbüttel • 22926 Ahrensburg</span>
+            </div>
+            <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+                <button onclick="toggleAdminMode()" id="admin-top-btn" class="bg-white/15 hover:bg-white/25 px-3 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-white/15">
+                    <i class="fa-solid fa-lock text-amber-400" id="admin-icon"></i>
+                    <span id="admin-btn-text">Redaktions- &amp; Admin-Modus</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header id="main-header" class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3 group py-2">
+                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-atsvBlue via-atsvBlueDark to-atsvRed flex items-center justify-center text-white font-display font-black text-lg sm:text-xl shadow-md group-hover:scale-105 transition">ATSV</div>
+                <div>
+                    <span class="text-[10px] sm:text-xs font-extrabold tracking-widest text-atsvRed uppercase block leading-none">Ahrensburger TSV</span>
+                    <span class="text-lg sm:text-xl font-display font-black text-slate-900 tracking-tight leading-tight">Leichtathletik</span>
+                </div>
+            </a>
+            <nav class="hidden lg:flex items-center gap-1 xl:gap-2 font-semibold text-sm">
+                <a href="index.html" class="nav-link px-3.5 py-2.5 rounded-xl transition text-slate-700 hover:text-atsvBlue hover:bg-slate-100" data-tab="home">Startseite</a>
+                <a href="trainingszeiten.html" class="nav-link px-3.5 py-2.5 rounded-xl transition text-slate-700 hover:text-atsvBlue hover:bg-slate-100" data-tab="trainingszeiten">Trainingszeiten</a>
+                <a href="aktuelles.html" class="nav-link px-3.5 py-2.5 rounded-xl transition text-slate-700 hover:text-atsvBlue hover:bg-slate-100" data-tab="aktuelles">Aktuelles &amp; Berichte</a>
+                <a href="termine.html" class="nav-link px-3.5 py-2.5 rounded-xl transition text-slate-700 hover:text-atsvBlue hover:bg-slate-100" data-tab="termine">Termine &amp; Kalender</a>
+                <a href="kontakt.html" class="nav-link px-3.5 py-2.5 rounded-xl transition text-slate-700 hover:text-atsvBlue hover:bg-slate-100" data-tab="kontakt">Sportabzeichen &amp; Kontakt</a>
+                <a href="admin.html" id="nav-admin-tab" class="hidden px-3.5 py-2.5 rounded-xl text-slate-900 bg-amber-300 hover:bg-amber-400 transition items-center gap-1.5 font-bold shadow-sm" data-tab="admin"><i class="fa-solid fa-sliders"></i> CMS Verwaltung</a>
+            </nav>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="index.html" class="hidden sm:inline-flex bg-atsvBlue hover:bg-atsvBlueDark text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl shadow-sm transition items-center gap-1.5"><i class="fa-solid fa-house"></i> Zur Website</a>
+                <button onclick="toggleMobileDrawer()" aria-label="Menü öffnen" class="lg:hidden p-3 rounded-xl text-slate-800 bg-slate-100 hover:bg-slate-200 transition"><i class="fa-solid fa-bars text-xl"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Drawer -->
+    <div id="mobile-drawer-backdrop" onclick="toggleMobileDrawer()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden"></div>
+    <aside id="mobile-drawer" class="fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between">
+        <div>
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-atsvBlueDark text-white">
+                <div class="flex items-center gap-2.5"><div class="w-9 h-9 rounded-lg bg-atsvRed flex items-center justify-center font-display font-black text-sm">ATSV</div><div><span class="text-[10px] uppercase tracking-widest text-red-300 block font-bold">Admin</span><span class="font-display font-bold text-base">CMS Verwaltung</span></div></div>
+                <button onclick="toggleMobileDrawer()" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <nav class="p-4 space-y-1.5 font-semibold text-base">
+                <a href="index.html" class="w-full text-left px-4 py-3.5 rounded-xl text-slate-800 hover:bg-blue-50 hover:text-atsvBlue transition flex items-center gap-3"><i class="fa-solid fa-house w-5 text-atsvBlue"></i> Startseite</a>
+                <a href="trainingszeiten.html" class="w-full text-left px-4 py-3.5 rounded-xl text-slate-800 hover:bg-blue-50 hover:text-atsvBlue transition flex items-center gap-3"><i class="fa-solid fa-stopwatch w-5 text-atsvRed"></i> Trainingszeiten</a>
+                <a href="aktuelles.html" class="w-full text-left px-4 py-3.5 rounded-xl text-slate-800 hover:bg-blue-50 hover:text-atsvBlue transition flex items-center gap-3"><i class="fa-solid fa-newspaper w-5 text-atsvBlue"></i> Aktuelles</a>
+                <a href="termine.html" class="w-full text-left px-4 py-3.5 rounded-xl text-slate-800 hover:bg-blue-50 hover:text-atsvBlue transition flex items-center gap-3"><i class="fa-solid fa-calendar-days w-5 text-emerald-600"></i> Termine</a>
+                <a href="admin.html" id="mobile-admin-tab" class="hidden w-full text-left px-4 py-3.5 rounded-xl text-slate-900 bg-amber-300 font-bold transition flex items-center gap-3 mt-2"><i class="fa-solid fa-sliders w-5"></i> CMS Verwaltung</a>
+            </nav>
+        </div>
+        <div class="p-5 border-t border-slate-100 bg-slate-50 space-y-3">
+            <button onclick="toggleAdminMode()" class="w-full bg-atsvRed text-white font-bold py-3.5 rounded-xl shadow text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-lock"></i> Admin-Modus beenden</button>
+        </div>
+    </aside>
+
+    <!-- Main Admin Content -->
+    <main class="flex-grow py-10 sm:py-14 bg-slate-100 min-h-[85vh]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <!-- Admin Header -->
+            <div class="bg-gradient-to-r from-atsvBlueDark via-atsvBlue to-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl mb-8 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-amber-400 text-slate-950 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-2"><i class="fa-solid fa-shield-halved"></i> Redaktions- &amp; Admin-Zentrale</div>
+                    <h1 class="text-2xl sm:text-3xl font-display font-black">ATSV Leichtathletik Website verwalten</h1>
+                    <p class="text-blue-100 text-xs sm:text-sm mt-1">Alle Änderungen werden automatisch lokal gespeichert und sind sofort auf der Website sichtbar.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                    <button onclick="resetToDefaults()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition border border-white/20 flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-left"></i> Standarddaten wiederherstellen
+                    </button>
+                    <button onclick="toggleAdminMode()" class="bg-atsvRed hover:bg-red-600 text-white font-bold px-5 py-2.5 rounded-xl text-xs sm:text-sm shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-lock"></i> Admin-Modus beenden
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin Sub-Tab Navigation -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-8">
+                <button onclick="switchAdminSubTab('hero')" id="admin-subtab-hero-btn" class="admin-subtab-btn bg-white text-slate-900 font-bold px-4 py-3.5 rounded-2xl shadow-sm border-2 border-atsvBlue transition flex items-center justify-center gap-2 text-xs sm:text-sm">
+                    <i class="fa-solid fa-images text-atsvBlue"></i> <span>Hero-Hintergrundbilder</span>
+                </button>
+                <button onclick="switchAdminSubTab('blog')" id="admin-subtab-blog-btn" class="admin-subtab-btn bg-white/70 hover:bg-white text-slate-700 font-bold px-4 py-3.5 rounded-2xl shadow-sm border border-slate-200 transition flex items-center justify-center gap-2 text-xs sm:text-sm">
+                    <i class="fa-solid fa-newspaper text-atsvBlue"></i> <span>Blog &amp; Berichte</span>
+                </button>
+                <button onclick="switchAdminSubTab('training')" id="admin-subtab-training-btn" class="admin-subtab-btn bg-white/70 hover:bg-white text-slate-700 font-bold px-4 py-3.5 rounded-2xl shadow-sm border border-slate-200 transition flex items-center justify-center gap-2 text-xs sm:text-sm">
+                    <i class="fa-solid fa-stopwatch text-atsvRed"></i> <span>Trainingszeiten</span>
+                </button>
+                <button onclick="switchAdminSubTab('events')" id="admin-subtab-events-btn" class="admin-subtab-btn bg-white/70 hover:bg-white text-slate-700 font-bold px-4 py-3.5 rounded-2xl shadow-sm border border-slate-200 transition flex items-center justify-center gap-2 text-xs sm:text-sm">
+                    <i class="fa-solid fa-calendar-days text-emerald-600"></i> <span>Termine &amp; Kalender</span>
+                </button>
+            </div>
+
+            <!-- SUBTAB: HERO -->
+            <div id="admin-subtab-hero" class="space-y-8">
+                <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 sm:p-8">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+                        <div>
+                            <h3 class="text-xl font-display font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up text-atsvBlue"></i> Neues Hero-Hintergrundbild hochladen</h3>
+                            <p class="text-xs sm:text-sm text-slate-500 mt-1">Lade ein Foto direkt vom Smartphone oder PC hoch oder füge eine Bild-URL ein.</p>
+                        </div>
+                    </div>
+                    <form onsubmit="handleAddHeroSlide(event)" class="space-y-5">
+                        <div id="hero-dropzone" class="border-2 border-dashed border-slate-300 hover:border-atsvBlue bg-slate-50 hover:bg-blue-50/40 rounded-2xl p-6 sm:p-8 text-center transition cursor-pointer relative">
+                            <input type="file" id="hero-file-input" accept="image/*" onchange="handleHeroFileSelect(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <div id="hero-upload-placeholder" class="space-y-2 pointer-events-none">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-100 text-atsvBlue mx-auto flex items-center justify-center text-xl"><i class="fa-solid fa-image"></i></div>
+                                <p class="text-sm font-bold text-slate-800">Bild hierher ziehen oder klicken zum Auswählen</p>
+                                <p class="text-xs text-slate-500">JPG, PNG oder WebP • Querformat (16:9) empfohlen • wird automatisch optimiert</p>
+                            </div>
+                            <div id="hero-upload-preview-box" class="hidden space-y-3 pointer-events-none">
+                                <img id="hero-upload-preview-img" src="" alt="Vorschau" class="max-h-48 mx-auto rounded-xl shadow-md object-cover">
+                                <p class="text-xs font-bold text-emerald-600"><i class="fa-solid fa-circle-check mr-1"></i> Bild erfolgreich geladen &amp; optimiert!</p>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Oder direkte Bild-URL angeben</label>
+                            <input type="url" id="hero-url-input" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="https://images.unsplash.com/photo-...">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Hero-Überschrift für dieses Bild</label>
+                                <input type="text" id="hero-slide-title" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" value="Schneller. Höher. Weiter. Gemeinsam im ATSV.">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Untertitel / Beschreibung</label>
+                                <input type="text" id="hero-slide-subtitle" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" value="Leichtathletik für Kinder, Jugendliche, Aktive &amp; Masters in Ahrensburg.">
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-4">
+                            <label class="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 cursor-pointer">
+                                <input type="checkbox" id="hero-set-active" checked class="w-4 h-4 rounded text-atsvBlue focus:ring-atsvBlue">
+                                <span>Direkt als aktives Startbild anzeigen</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="bg-atsvBlue hover:bg-atsvBlueDark text-white font-bold px-8 py-3.5 rounded-xl shadow transition flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-plus"></i> Hero-Bild speichern &amp; zur Slideshow hinzufügen
+                        </button>
+                    </form>
+                </div>
+                <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 sm:p-8">
+                    <h3 class="text-xl font-display font-black text-slate-900 mb-2">Aktive Hero-Hintergrundbilder (<span id="hero-count">0</span>)</h3>
+                    <p class="text-xs text-slate-500 mb-6">Diese Bilder rotieren automatisch im Startseiten-Banner.</p>
+                    <div id="admin-hero-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </div>
+            </div>
+
+            <!-- SUBTAB: BLOG -->
+            <div id="admin-subtab-blog" class="space-y-8 hidden">
+                <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 sm:p-8" id="blog-form-container">
+                    <h3 class="text-xl font-display font-black text-slate-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-pen-nib text-atsvBlue"></i> <span id="blog-form-title">Neuen Blog-Post erstellen</span></h3>
+                    <form onsubmit="handleSaveBlog(event)" class="space-y-4">
+                        <input type="hidden" id="blog-edit-id">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Titel des Beitrags *</label>
+                                <input type="text" id="blog-title" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="z.B. Bezirksmeisterschaften: Starke Leistungen">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Kategorie *</label>
+                                    <select id="blog-category" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm bg-white">
+                                        <option value="Wettkampf">Wettkampf</option>
+                                        <option value="Vereinsleben">Vereinsleben</option>
+                                        <option value="Ankündigung">Ankündigung</option>
+                                        <option value="Sportabzeichen">Sportabzeichen</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Datum *</label>
+                                    <input type="date" id="blog-date" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Autor / Trainer</label>
+                                <input type="text" id="blog-author" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" value="Trainerteam ATSV">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Vorschaubild URL oder Upload</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="blog-image" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="https://... oder Datei wählen" value="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&q=80&w=900">
+                                    <label class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-4 py-3 rounded-xl border border-slate-200 cursor-pointer shrink-0 flex items-center gap-1.5 text-xs"><i class="fa-solid fa-upload"></i> Upload<input type="file" accept="image/*" onchange="handleBlogImageUpload(event)" class="hidden"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Kurztext (Teaser) *</label>
+                            <input type="text" id="blog-excerpt" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="Kurze Zusammenfassung in 1–2 Sätzen...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Vollständiger Artikeltext *</label>
+                            <textarea id="blog-content" rows="5" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="Ausführlicher Bericht..."></textarea>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <button type="submit" class="bg-atsvBlue hover:bg-atsvBlueDark text-white font-bold px-8 py-3.5 rounded-xl shadow transition flex items-center gap-2 text-sm"><i class="fa-solid fa-floppy-disk"></i> <span id="blog-submit-btn-text">Beitrag veröffentlichen</span></button>
+                            <button type="button" id="blog-cancel-btn" onclick="resetBlogForm()" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-6 py-3.5 rounded-xl transition text-sm">Abbrechen</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 sm:p-8">
+                    <h3 class="text-xl font-display font-black text-slate-900 mb-6">Veröffentlichte Blog-Posts bearbeiten</h3>
+                    <div id="admin-blog-list" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- SUBTAB: TRAINING -->
+            <div id="admin-subtab-training" class="space-y-8 hidden">
+                <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 sm:p-8" id="training-form-container">
+                    <h3 class="text-xl font-display font-black text-slate-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-stopwatch text-atsvRed"></i> <span id="training-form-title">Neue Trainingszeit hinzufügen</span></h3>
+                    <form onsubmit="handleSaveTraining(event)" class="space-y-4">
+                        <input type="hidden" id="training-edit-index">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Filter-Kategorie *</label>
+                                <select id="train-category" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm bg-white">
+                                    <option value="Kinder">U8 / U10 Kinder</option>
+                                    <option value="Schüler">U12 / U14 Schüler</option>
+                                    <option value="Jugend">U16 / U18 / U20 Jugend</option>
+                                    <option value="Erwachsene">Erwachsene &amp; Senioren</option>
+                                    <option value="Laufgruppe">Laufgruppe &amp; Sportabzeichen</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Gruppenname *</label>
+                                <input type="text" id="train-group" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="z.B. U12 Schüler">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Jahrgänge *</label>
+                                <input type="text" id="train-year" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="z.B. 2015 &amp; 2016">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Wochentag *</label>
+                                <input type="text" id="train-day" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="z.B. Montag &amp; Mittwoch">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Uhrzeit *</label>
+                                <input type="text" id="train-time" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="z.B. 16:30 – 18:00 Uhr">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Sportstätte *</label>
+                                <input type="text" id="train-location" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="z.B. Stormarnplatz Ahrensburg">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Trainer/in *</label>
+                            <input type="text" id="train-trainer" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="z.B. Nils &amp; Maxi">
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <button type="submit" class="bg-atsvRed hover:bg-red-600 text-white font-bold px-8 py-3.5 rounded-xl shadow transition flex items-center gap-2 text-sm"><i class="fa-solid fa-floppy-disk"></i> <span id="training-submit-btn-text">Trainingszeit speichern</span></button>
+                            <button type="button" id="training-cancel-btn" onclick="resetTrainingForm()" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-6 py-3.5 rounded-xl transition text-sm">Abbrechen</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 sm:p-8">
+                    <h3 class="text-xl font-display font-black text-slate-900 mb-6">Alle Trainingsgruppen bearbeiten</h3>
+                    <div id="admin-training-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- SUBTAB: EVENTS -->
+            <div id="admin-subtab-events" class="space-y-8 hidden">
+                <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 sm:p-8" id="event-form-container">
+                    <h3 class="text-xl font-display font-black text-slate-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-calendar-plus text-emerald-600"></i> <span id="event-form-title">Neuen Termin erstellen</span></h3>
+                    <form onsubmit="handleSaveEvent(event)" class="space-y-4">
+                        <input type="hidden" id="event-edit-id">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Veranstaltungstitel *</label>
+                                <input type="text" id="event-title" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="z.B. 58. Ahrensburger Nikolauslauf">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Kategorie *</label>
+                                <select id="event-category" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm bg-white">
+                                    <option value="Bahnwettkampf">Bahnwettkampf</option>
+                                    <option value="Crosslauf">Crosslauf / Straßenlauf</option>
+                                    <option value="Vereinsfest">Vereinsfest / Sportfest</option>
+                                    <option value="Sportabzeichen">Sportabzeichen</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Datum *</label>
+                                <input type="text" id="event-date" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="z.B. 06. Dez. 2026">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Sportstätte / Ort *</label>
+                                <input type="text" id="event-location" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="z.B. Sportplatz Am Reesenbüttel">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Meldeschluss *</label>
+                                <input type="text" id="event-deadline" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="z.B. 28. Nov. 2026">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Beschreibung / Hinweise *</label>
+                            <textarea id="event-description" rows="3" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-atsvBlue focus:outline-none text-sm" placeholder="Disziplinen, Startzeiten und Meldung über LADV / Trainer..."></textarea>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-3.5 rounded-xl shadow transition flex items-center gap-2 text-sm"><i class="fa-solid fa-floppy-disk"></i> <span id="event-submit-btn-text">Termin speichern</span></button>
+                            <button type="button" id="event-cancel-btn" onclick="resetEventForm()" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-6 py-3.5 rounded-xl transition text-sm">Abbrechen</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 sm:p-8">
+                    <h3 class="text-xl font-display font-black text-slate-900 mb-6">Eingetragene Termine verwalten</h3>
+                    <div id="admin-event-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 text-slate-400 py-8 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500">
+            <span>&copy; 2026 Ahrensburger TSV von 1874 e.V. – Leichtathletik.</span>
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="hover:text-white transition">← Zurück zur Website</a>
+                <button onclick="toggleAdminMode()" class="text-red-400 hover:text-red-300 font-bold transition"><i class="fa-solid fa-lock mr-1"></i> Admin beenden</button>
+            </div>
+        </div>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Redirect if not in admin mode
+            if (!isAdminMode) {
+                window.location.href = 'index.html';
+                return;
+            }
+            initPage();
+
+            // Apply pending subtab from openAdminSection()
+            const pendingSubTab = localStorage.getItem('atsv_admin_subtab');
+            if (pendingSubTab) {
+                switchAdminSubTab(pendingSubTab);
+                localStorage.removeItem('atsv_admin_subtab');
+            } else {
+                switchAdminSubTab('hero');
+            }
+
+            // Render all admin lists
+            renderAdminHeroList();
+            renderAdminBlogList();
+            renderAdminTrainingList();
+            renderAdminEventList();
+
+            // Set default date for blog form
+            const dateInput = document.getElementById('blog-date');
+            if (dateInput) dateInput.valueAsDate = new Date();
+
+            setupHeroDragAndDrop();
+        });
+    </script>
+</body>
+</html>

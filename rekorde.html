@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="de" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vereinsrekorde – Ahrensburger TSV Leichtathletik</title>
+    <meta name="description" content="Verifizierte Allzeit-Vereinsrekorde, SHLV-Landesrekorde und Deutsche Rekorde der Leichtathletik-Abteilung des Ahrensburger TSV (Freiluft &amp; Halle).">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { atsvBlue:'#004B93', atsvBlueDark:'#003366', atsvRed:'#E63946', atsvOrange:'#F97316', atsvDark:'#0F172A' }, fontFamily:{ sans:['Inter','sans-serif'], display:['Montserrat','sans-serif'] } } }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-display { font-family: 'Montserrat', sans-serif; }
+        ::-webkit-scrollbar { height: 6px; width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <div id="toast-container" class="fixed bottom-5 right-5 left-5 sm:left-auto z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Admin Quick Toolbar -->
+    <div id="admin-quick-toolbar" class="hidden bg-amber-400 text-slate-950 border-b border-amber-500 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+            <div class="flex items-center gap-2">
+                <span class="bg-slate-900 text-amber-400 px-2.5 py-1 rounded-md uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-shield-halved"></i> Redaktions-Modus</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <button onclick="openAdminSection('hero')" class="bg-white/90 hover:bg-white text-slate-900 px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1"><i class="fa-solid fa-image text-atsvBlue"></i> <span>+ Hero-Bild</span></button>
+                <button onclick="openAdminSection('blog')" class="bg-white/90 hover:bg-white text-slate-900 px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1"><i class="fa-solid fa-pen-nib text-atsvBlue"></i> <span>+ Blog-Post</span></button>
+                <button onclick="openAdminSection('training')" class="bg-white/90 hover:bg-white text-slate-900 px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1"><i class="fa-solid fa-stopwatch text-atsvRed"></i> <span>+ Trainingszeit</span></button>
+                <button onclick="openAdminSection('events')" class="bg-white/90 hover:bg-white text-slate-900 px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1"><i class="fa-solid fa-calendar-plus text-emerald-700"></i> <span>+ Termin</span></button>
+                <button onclick="toggleAdminMode()" class="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition ml-1">Beenden</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Info Bar -->
+    <div class="bg-atsvBlueDark text-white text-xs py-2 px-4 border-b border-white/10">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="flex items-center gap-2 text-center sm:text-left">
+                <span class="bg-atsvRed text-white px-2 py-0.5 rounded font-bold text-[10px] uppercase tracking-wider shrink-0">ATSV 1874</span>
+                <span class="truncate">Stormarnplatz &amp; Sportplatz Am Reesenbüttel • 22926 Ahrensburg</span>
+            </div>
+            <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+                <a href="kontakt.html" class="hover:text-amber-300 transition hidden md:inline-flex items-center gap-1"><i class="fa-solid fa-envelope"></i> kontakt@meinatsv.de</a>
+                <button onclick="toggleAdminMode()" id="admin-top-btn" class="bg-white/15 hover:bg-white/25 px-3 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-white/15">
+                    <i class="fa-solid fa-lock text-amber-400" id="admin-icon"></i>
+                    <span id="admin-btn-text">Redaktions- &amp; Admin-Modus</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header id="main-header" class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3 group py-2">
+                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-atsvBlue via-atsvBlueDark to-atsvRed flex items-center justify-center text-white font-display font-black text-lg sm:text-xl shadow-md group-hover:scale-105 transition">ATSV</div>
+                <div>
+                    <span class="text-[10px] sm:text-xs font-extrabold tracking-widest text-atsvRed uppercase block leading-none">Ahrensburger TSV</span>
+                    <span class="text-lg sm:text-xl font-display font-black text-slate-900 tracking-tight leading-tight">Leichtathletik</span>
+                </div>
+            </a>
+            <nav class="hidden lg:flex items-center gap-1 xl:gap-2 font-semibold text-sm">
+                <a href="index.html" class="nav-link px-3.5 py-2.5 rounded-xl transition text-slate-700 hover:text-atsvBlue hover:bg-slate-100" data-tab="home">Startseite</a>
+                <a href="trainingszeiten.html" class="nav-link px-3.5 py-2.5 rounded-xl transition text-slate-700 hover:text-atsvBlue hover:bg-slate-100" data-tab="trainingszeiten">Trainingszeiten</a>
+                <a href="aktuelles.html" class="nav-link px-3.5 py-2.5 rounded-xl transition text-slate-700 hover:text-atsvBlue hover:bg-slate-100" data-tab="aktuelles">Aktuelles &amp; Berichte</a>
+                <a href="termine.html" class="nav-link px-3.5 py-2.5 rounded-xl transition text-slate-700 hover:text-atsvBlue hover:bg-slate-100" data-tab="termine">Termine &amp; Kalender</a>
+                <a href="rekorde.html" class="nav-link px-3.5 py-2.5 rounded-xl transition text-atsvBlue bg-blue-50/80" data-tab="rekorde">Vereinsrekorde</a>
+                <a href="kontakt.html" class="nav-link px-3.5 py-2.5 rounded-xl transition text-slate-700 hover:text-atsvBlue hover:bg-slate-100" data-tab="kontakt">Sportabzeichen &amp; Kontakt</a>
+                <a href="admin.html" id="nav-admin-tab" class="hidden px-3.5 py-2.5 rounded-xl text-slate-900 bg-amber-300 hover:bg-amber-400 transition items-center gap-1.5 font-bold shadow-sm" data-tab="admin"><i class="fa-solid fa-sliders"></i> CMS Verwaltung</a>
+            </nav>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="kontakt.html" class="hidden sm:inline-flex lg:hidden xl:inline-flex bg-atsvRed hover:bg-red-700 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl shadow-sm transition items-center gap-1.5"><i class="fa-solid fa-person-running"></i> Probetraining</a>
+                <button onclick="toggleMobileDrawer()" aria-label="Menü öffnen" class="lg:hidden p-3 rounded-xl text-slate-800 bg-slate-100 hover:bg-slate-200 transition"><i class="fa-solid fa-bars text-xl"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Drawer -->
+    <div id="mobile-drawer-backdrop" onclick="toggleMobileDrawer()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden"></div>
+    <aside id="mobile-drawer" class="fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between">
+        <div>
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-atsvBlueDark text-white">
+                <div class="flex items-center gap-2.5"><div class="w-9 h-9 rounded-lg bg-atsvRed flex items-center justify-center font-display font-black text-sm">ATSV</div><div><span class="text-[10px] uppercase tracking-widest text-red-300 block font-bold">Navigation</span><span class="font-display font-bold text-base">Leichtathletik</span></div></div>
+                <button onclick="toggleMobileDrawer()" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <nav class="p-4 space-y-1.5 font-semibold text-base">
+                <a href="index.html" class="w-full text-left px-4 py-3.5 rounded-xl text-slate-800 hover:bg-blue-50 hover:text-atsvBlue transition flex items-center gap-3"><i class="fa-solid fa-house w-5 text-atsvBlue"></i> Startseite</a>
+                <a href="trainingszeiten.html" class="w-full text-left px-4 py-3.5 rounded-xl text-slate-800 hover:bg-blue-50 hover:text-atsvBlue transition flex items-center gap-3"><i class="fa-solid fa-stopwatch w-5 text-atsvRed"></i> Trainingszeiten</a>
+                <a href="aktuelles.html" class="w-full text-left px-4 py-3.5 rounded-xl text-slate-800 hover:bg-blue-50 hover:text-atsvBlue transition flex items-center gap-3"><i class="fa-solid fa-newspaper w-5 text-atsvBlue"></i> Aktuelles &amp; Berichte</a>
+                <a href="termine.html" class="w-full text-left px-4 py-3.5 rounded-xl text-slate-800 hover:bg-blue-50 hover:text-atsvBlue transition flex items-center gap-3"><i class="fa-solid fa-calendar-days w-5 text-emerald-600"></i> Termine &amp; Kalender</a>
+                <a href="rekorde.html" class="w-full text-left px-4 py-3.5 rounded-xl text-atsvBlue bg-blue-50 font-bold transition flex items-center gap-3"><i class="fa-solid fa-trophy w-5 text-amber-500"></i> Vereinsrekorde</a>
+                <a href="kontakt.html" class="w-full text-left px-4 py-3.5 rounded-xl text-slate-800 hover:bg-blue-50 hover:text-atsvBlue transition flex items-center gap-3"><i class="fa-solid fa-award w-5 text-orange-500"></i> Sportabzeichen &amp; Kontakt</a>
+                <a href="admin.html" id="mobile-admin-tab" class="hidden w-full text-left px-4 py-3.5 rounded-xl text-slate-900 bg-amber-300 font-bold transition flex items-center gap-3 mt-2"><i class="fa-solid fa-sliders w-5"></i> CMS Verwaltung</a>
+            </nav>
+        </div>
+        <div class="p-5 border-t border-slate-100 bg-slate-50 space-y-3">
+            <a href="kontakt.html" class="w-full bg-atsvRed text-white font-bold py-3.5 rounded-xl shadow text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i> Probetraining anfragen</a>
+            <button onclick="toggleAdminMode()" class="w-full bg-slate-200 text-slate-800 font-semibold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-lock"></i> Admin-Modus umschalten</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-grow py-10 sm:py-14">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <!-- Page Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+                <div>
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-atsvRed">Bestleistungen &amp; Landesrekorde</span>
+                    <h1 class="text-3xl sm:text-4xl font-display font-black text-slate-900 mt-1">Verifizierte Allzeit-Vereinsrekorde</h1>
+                    <p class="text-slate-600 text-sm sm:text-base mt-2 max-w-3xl">
+                        16 ungeschlagene SHLV-Landesrekorde und Deutsche Rekorde (DLV) des Ahrensburger TSV aus den öffentlichen LADV-, SHLV- und DLV-Rekorddatenbanken (seit 1990).
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl shadow-sm text-xs font-bold text-slate-700 shrink-0">
+                    <i class="fa-solid fa-trophy text-amber-500 text-base"></i>
+                    <span><span id="records-count">16</span> Rekorde angezeigt</span>
+                </div>
+            </div>
+
+            <!-- Filter & Search Controls -->
+            <div class="bg-white p-5 sm:p-6 rounded-3xl shadow-md border border-slate-200 mb-8 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <!-- Suche -->
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="rec-search" oninput="renderRecords()" placeholder="Athlet, Disziplin oder Ort..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-atsvBlue focus:outline-none">
+                    </div>
+
+                    <!-- Kategorie -->
+                    <select id="rec-category" onchange="renderRecords()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 bg-white focus:ring-2 focus:ring-atsvBlue focus:outline-none">
+                        <option value="all">Alle Altersbereiche</option>
+                        <option value="Jugend">Jugend (M14 / U18)</option>
+                        <option value="Masters">Masters / Senioren</option>
+                    </select>
+
+                    <!-- Umgebung -->
+                    <select id="rec-env" onchange="renderRecords()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 bg-white focus:ring-2 focus:ring-atsvBlue focus:outline-none">
+                        <option value="all">Freiluft &amp; Halle</option>
+                        <option value="Freiluft">Nur Freiluft</option>
+                        <option value="Halle">Nur Halle</option>
+                    </select>
+
+                    <!-- Status -->
+                    <select id="rec-status" onchange="renderRecords()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 bg-white focus:ring-2 focus:ring-atsvBlue focus:outline-none">
+                        <option value="all">Alle Rekord-Ebenen</option>
+                        <option value="DLV">Deutscher Rekord (DLV)</option>
+                        <option value="SHLV">SHLV-Landesrekord</option>
+                    </select>
+                </div>
+
+                <!-- Quick Age Pills & Reset -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                    <div class="flex flex-wrap items-center gap-1.5 text-xs">
+                        <span class="font-bold text-slate-500 mr-1">Sortierung:</span>
+                        <button onclick="setRecordSort('year')" id="sort-btn-year" class="rec-sort-btn px-3 py-1.5 rounded-lg font-bold bg-atsvBlue text-white transition">Datum <i class="fa-solid fa-arrow-down-wide-short ml-1"></i></button>
+                        <button onclick="setRecordSort('age')" id="sort-btn-age" class="rec-sort-btn px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Altersklasse</button>
+                        <button onclick="setRecordSort('discipline')" id="sort-btn-discipline" class="rec-sort-btn px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Disziplin</button>
+                        <button onclick="setRecordSort('athlete')" id="sort-btn-athlete" class="rec-sort-btn px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Athlet/in</button>
+                    </div>
+                    <button onclick="resetRecordFilters()" class="text-xs font-bold text-atsvRed hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left"></i> Filter zurücksetzen
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Cards -->
+            <div id="records-mobile-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden mb-8"></div>
+
+            <!-- Desktop Table -->
+            <div class="hidden lg:block bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden mb-10">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-xs font-extrabold uppercase tracking-wider border-b border-slate-200">
+                                <th onclick="setRecordSort('age')" class="py-4 px-5 cursor-pointer hover:text-atsvBlue select-none">AK <i class="fa-solid fa-sort ml-1 opacity-50"></i></th>
+                                <th onclick="setRecordSort('discipline')" class="py-4 px-5 cursor-pointer hover:text-atsvBlue select-none">Disziplin <i class="fa-solid fa-sort ml-1 opacity-50"></i></th>
+                                <th class="py-4 px-5">Leistung</th>
+                                <th onclick="setRecordSort('athlete')" class="py-4 px-5 cursor-pointer hover:text-atsvBlue select-none">Athlet(en) <i class="fa-solid fa-sort ml-1 opacity-50"></i></th>
+                                <th onclick="setRecordSort('year')" class="py-4 px-5 cursor-pointer hover:text-atsvBlue select-none">Datum &amp; Ort <i class="fa-solid fa-sort ml-1 opacity-50"></i></th>
+                                <th class="py-4 px-5">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="records-table-body" class="divide-y divide-slate-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Info Box LADV / KLV -->
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 text-blue-950 flex flex-col sm:flex-row items-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-atsvBlue text-white flex items-center justify-center shrink-0"><i class="fa-solid fa-database text-lg"></i></div>
+                <div class="space-y-1.5 text-sm">
+                    <h4 class="font-bold text-base">Hinweise zur Datenbasis (LADV, SHLV &amp; KLV Stormarn)</h4>
+                    <p class="text-blue-900 leading-relaxed">
+                        In den öffentlichen Rekorddatenbanken von <strong>LADV</strong> und <strong>SHLV</strong> werden ausschließlich offizielle Landes- und Kreisrekorde geführt. Weitere Vereinsbestleistungen des ATSV lassen sich über die digitalen <strong>SHLV-Jahresbestenlisten (ab 2010)</strong> sowie die <strong>KLV-Stormarn-Kreisrekorde</strong> (u.&nbsp;a. Nadja Käther im Blockmehrkampf mit 2.597 Pkt. oder Mathias Brock im Straßenlauf mit 5:39,2 min) nachvollziehen.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 text-slate-400 py-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+            <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-atsvBlue to-atsvRed flex items-center text-white justify-center font-display font-black text-base">ATSV</div>
+                    <div><span class="text-white font-display font-bold text-base block leading-none">Ahrensburger TSV</span><span class="text-xs text-red-400 font-semibold">Abteilung Leichtathletik</span></div>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">Tradition, Teamgeist und moderne Leichtathletik im Ahrensburger TSV von 1874 e.V. – für Kinder, Jugendliche, Aktive und Masters.</p>
+            </div>
+            <div>
+                <h4 class="text-white font-bold text-xs mb-4 uppercase tracking-wider">Schnellzugriff</h4>
+                <ul class="space-y-2.5 text-xs font-medium">
+                    <li><a href="index.html" class="hover:text-white transition">Startseite</a></li>
+                    <li><a href="trainingszeiten.html" class="hover:text-white transition">Trainingszeiten &amp; Gruppen</a></li>
+                    <li><a href="aktuelles.html" class="hover:text-white transition">Aktuelles &amp; Wettkampfberichte</a></li>
+                    <li><a href="termine.html" class="hover:text-white transition">Termine &amp; Wettkampfkalender</a></li>
+                    <li><a href="rekorde.html" class="hover:text-white transition">Vereinsrekorde</a></li>
+                    <li><a href="kontakt.html" class="hover:text-white transition">Sportabzeichen &amp; Probetraining</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold text-xs mb-4 uppercase tracking-wider">Sportstätten in Ahrensburg</h4>
+                <ul class="space-y-2.5 text-xs text-slate-400">
+                    <li><strong class="text-slate-200">Sportplatz Am Reesenbüttel</strong><br>Schimmelmannstr. 46, 22926 Ahrensburg</li>
+                    <li><strong class="text-slate-200">Sporthalle Reesenbüttel</strong></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold text-xs mb-4 uppercase tracking-wider">Rechtliches &amp; Redaktion</h4>
+                <ul class="space-y-2 text-xs font-medium mb-4">
+                    <li><a href="impressum.html" class="hover:text-white transition">Impressum</a></li>
+                    <li><a href="datenschutz.html" class="hover:text-white transition">Datenschutzerklärung</a></li>
+                </ul>
+                <button onclick="toggleAdminMode()" class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition border border-white/15 flex items-center gap-2"><i class="fa-solid fa-lock text-amber-400"></i> Redaktions- &amp; Admin-Modus</button>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-500">
+            <span>&copy; 2026 Ahrensburger TSV von 1874 e.V. – Leichtathletik.</span>
+            <div class="flex items-center gap-4">
+                <a href="impressum.html" class="hover:text-white transition">Impressum</a>
+                <a href="datenschutz.html" class="hover:text-white transition">Datenschutz</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        const clubRecords = [
+            { category: "Jugend", env: "Freiluft", age: "M14", ageOrder: 1, discipline: "Siebenkampf", performance: "4.973 Pkt.", detail: "11,67 - 6,24 - 10,92 - 1,66 - 11,71 - 28,92 - 3,40", athlete: "John Schlegl (Jg. 2000)", date: "31.08.2014", sortDate: "2014-08-31", location: "Filderstadt", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Jugend", env: "Freiluft", age: "MJU18", ageOrder: 2, discipline: "Zehnkampf (Mannschaft)", performance: "13.323 Pkt.", detail: "", athlete: "Thilo Conrad (4.781), Lasse Eggers (4.430), Nils Dyrßen (4.112)", date: "30.05.2026", sortDate: "2026-05-30", location: "Papenburg", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Jugend", env: "Freiluft", age: "WJU18", ageOrder: 3, discipline: "Dreisprung", performance: "12,12 m", detail: "+0,2 m/s", athlete: "Lea Silwen Baudisch (Jg. 2007)", date: "06.07.2024", sortDate: "2024-07-06", location: "Mönchengladbach", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Masters", env: "Freiluft", age: "M30", ageOrder: 4, discipline: "4 × 400 m Staffel", performance: "3:34,26 min", detail: "M35-Wert / Staffel-Rekord", athlete: "Gerhard Rogat (1948), Klaus Herbst (1948), Rainer Gabius (1948), Bernd Deters (1948)", date: "14.08.1993", sortDate: "1993-08-14", location: "Ahrensburg", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Masters", env: "Freiluft", age: "M35", ageOrder: 5, discipline: "4 × 400 m Staffel", performance: "3:34,26 min", detail: "", athlete: "Bernhard Riedel (1945), Helmut Lange (1945), Klaus Gailus (1944), Wolfgang Schliestedt (1948)", date: "15.09.1990", sortDate: "1990-09-15", location: "Ludwigshafen", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Masters", env: "Freiluft", age: "M40", ageOrder: 6, discipline: "4 × 100 m Staffel", performance: "45,50 s", detail: "", athlete: "Ahrensburger TSV", date: "15.09.1990", sortDate: "1990-09-15", location: "Ludwigshafen", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Masters", env: "Freiluft", age: "M40", ageOrder: 6, discipline: "3 × 1000 m Staffel", performance: "8:14,36 min", detail: "", athlete: "Ahrensburger TSV", date: "19.08.1995", sortDate: "1995-08-19", location: "Minden", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Masters", env: "Freiluft", age: "M40", ageOrder: 6, discipline: "Fünfkampf (Mannschaft)", performance: "9.514 Pkt.", detail: "", athlete: "Josef Muschinski (3.343), Kurt Kaschke (3.190), Holger Kriedel (2.981)", date: "17.08.1996", sortDate: "1996-08-17", location: "Leinfelden", status: "Deutscher Rekord (DLV)", statusType: "DLV" },
+            { category: "Masters", env: "Freiluft", age: "M45", ageOrder: 7, discipline: "400 m", performance: "52,14 s", detail: "", athlete: "Josef Muschinski (Jg. 1952)", date: "14.06.1998", sortDate: "1998-06-14", location: "Bad Oldesloe", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Masters", env: "Freiluft", age: "M45", ageOrder: 7, discipline: "110 m Hürden", performance: "18,07 s", detail: "", athlete: "Wolfgang Schliestedt (Jg. 1948)", date: "16.07.1993", sortDate: "1993-07-16", location: "Ludwigshafen", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Masters", env: "Freiluft", age: "M50", ageOrder: 8, discipline: "200 m", performance: "23,67 s", detail: "", athlete: "Josef Muschinski (Jg. 1952)", date: "28.07.2002", sortDate: "2002-07-28", location: "Weinstadt", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Masters", env: "Freiluft", age: "M65", ageOrder: 9, discipline: "100 m Hürden", performance: "17,61 s", detail: "+0,3 m/s", athlete: "Wolfgang Schliestedt (Jg. 1948)", date: "31.05.2015", sortDate: "2015-05-31", location: "Osterholz-Scharmbeck", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Masters", env: "Freiluft", age: "M70", ageOrder: 10, discipline: "80 m Hürden", performance: "13,85 s", detail: "+1,0 m/s", athlete: "Wolfgang Schliestedt (Jg. 1948)", date: "16.06.2018", sortDate: "2018-06-16", location: "Büdelsdorf", status: "SHLV-Rekord", statusType: "SHLV" },
+            { category: "Masters", env: "Freiluft", age: "W35 / W40", ageOrder: 11, discipline: "400 m Hürden", performance: "64,58 s", detail: "", athlete: "Martina Seidel (Jg. 1962)", date: "25.08.2002", sortDate: "2002-08-25", location: "Potsdam", status: "SHLV-Rekord (W35 & W40)", statusType: "SHLV" },
+            { category: "Masters", env: "Halle", age: "M50", ageOrder: 8, discipline: "800 m (Halle)", performance: "2:14,48 min", detail: "", athlete: "Rainer Winter (Jg. 1949)", date: "28.02.2004", sortDate: "2004-02-28", location: "Potsdam", status: "SHLV-Hallenrekord", statusType: "SHLV" },
+            { category: "Masters", env: "Halle", age: "M65", ageOrder: 9, discipline: "Weitsprung (Halle)", performance: "5,12 m", detail: "", athlete: "Wolfgang Schliestedt (Jg. 1948)", date: "16.02.2014", sortDate: "2014-02-16", location: "Hamburg", status: "SHLV-Hallenrekord", statusType: "SHLV" }
+        ];
+
+        let currentSortField = 'year';
+        let currentSortDir   = 'desc';
+
+        function setRecordSort(field) {
+            if (currentSortField === field) {
+                currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortField = field;
+                currentSortDir = field === 'year' ? 'desc' : 'asc';
+            }
+
+            document.querySelectorAll('.rec-sort-btn').forEach(btn => {
+                btn.className = "rec-sort-btn px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+            });
+            const activeBtn = document.getElementById(`sort-btn-${field}`);
+            if (activeBtn) {
+                activeBtn.className = "rec-sort-btn px-3 py-1.5 rounded-lg font-bold bg-atsvBlue text-white transition";
+            }
+            renderRecords();
+        }
+
+        function resetRecordFilters() {
+            document.getElementById('rec-search').value   = '';
+            document.getElementById('rec-category').value = 'all';
+            document.getElementById('rec-env').value      = 'all';
+            document.getElementById('rec-status').value   = 'all';
+            currentSortField = 'year';
+            currentSortDir   = 'desc';
+            setRecordSort('year');
+            currentSortDir   = 'desc';
+            renderRecords();
+        }
+
+        function renderRecords() {
+            const q      = document.getElementById('rec-search').value.trim().toLowerCase();
+            const cat    = document.getElementById('rec-category').value;
+            const env    = document.getElementById('rec-env').value;
+            const status = document.getElementById('rec-status').value;
+
+            let list = clubRecords.filter(r => {
+                if (cat !== 'all' && r.category !== cat) return false;
+                if (env !== 'all' && r.env !== env) return false;
+                if (status !== 'all' && r.statusType !== status) return false;
+                if (q) {
+                    const hay = `${r.age} ${r.discipline} ${r.athlete} ${r.location} ${r.date}`.toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+
+            list.sort((a, b) => {
+                let cmp = 0;
+                if (currentSortField === 'year') cmp = a.sortDate.localeCompare(b.sortDate);
+                else if (currentSortField === 'age') cmp = a.ageOrder - b.ageOrder;
+                else if (currentSortField === 'discipline') cmp = a.discipline.localeCompare(b.discipline, 'de');
+                else if (currentSortField === 'athlete') cmp = a.athlete.localeCompare(b.athlete, 'de');
+                return currentSortDir === 'asc' ? cmp : -cmp;
+            });
+
+            document.getElementById('records-count').textContent = list.length;
+
+            const badgeHtml = (r) => r.statusType === 'DLV'
+                ? `<span class="inline-flex items-center gap-1 bg-amber-400 text-slate-950 text-[11px] font-extrabold px-2.5 py-1 rounded-full"><i class="fa-solid fa-crown"></i> ${r.status}</span>`
+                : `<span class="inline-flex items-center gap-1 bg-blue-50 text-atsvBlue text-[11px] font-extrabold px-2.5 py-1 rounded-full">${r.status}</span>`;
+
+            const envBadge = (r) => r.env === 'Halle'
+                ? `<span class="bg-purple-50 text-purple-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md ml-1.5">Halle</span>`
+                : '';
+
+            // Desktop Table
+            const tbody = document.getElementById('records-table-body');
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-500 text-sm">Keine Vereinsrekorde für diese Filterauswahl gefunden.</td></tr>`;
+            } else {
+                tbody.innerHTML = list.map(r => `
+                    <tr class="hover:bg-blue-50/40 transition">
+                        <td class="py-4 px-5 font-extrabold text-slate-900 whitespace-nowrap">${r.age}</td>
+                        <td class="py-4 px-5 font-bold text-slate-800">${r.discipline}${envBadge(r)}</td>
+                        <td class="py-4 px-5">
+                            <span class="font-display font-black text-atsvBlue text-base">${r.performance}</span>
+                            ${r.detail ? `<span class="block text-[11px] text-slate-500 mt-0.5">${r.detail}</span>` : ''}
+                        </td>
+                        <td class="py-4 px-5 text-slate-700 font-medium">${r.athlete}</td>
+                        <td class="py-4 px-5 text-slate-600 whitespace-nowrap">
+                            <span class="font-semibold text-slate-800 block">${r.date}</span>
+                            <span class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i>${r.location}</span>
+                        </td>
+                        <td class="py-4 px-5 whitespace-nowrap">${badgeHtml(r)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            // Mobile Cards
+            const mobile = document.getElementById('records-mobile-cards');
+            if (list.length === 0) {
+                mobile.innerHTML = `<div class="bg-white p-6 rounded-2xl border border-slate-200 text-center text-sm text-slate-500 col-span-full">Keine Vereinsrekorde für diese Filterauswahl gefunden.</div>`;
+            } else {
+                mobile.innerHTML = list.map(r => `
+                    <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-200 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="bg-slate-900 text-white text-xs font-extrabold px-2.5 py-0.5 rounded-lg">${r.age}</span>
+                                ${badgeHtml(r)}
+                            </div>
+                            <h3 class="font-display font-bold text-slate-900 text-base">${r.discipline}${envBadge(r)}</h3>
+                            <p class="font-display font-black text-atsvBlue text-xl mt-1">${r.performance}</p>
+                            ${r.detail ? `<p class="text-[11px] text-slate-500">${r.detail}</p>` : ''}
+                        </div>
+                        <div class="pt-2.5 border-t border-slate-100 text-xs text-slate-600 space-y-1">
+                            <p class="font-semibold text-slate-800"><i class="fa-solid fa-user text-atsvBlue w-4"></i> ${r.athlete}</p>
+                            <p><i class="fa-regular fa-calendar text-slate-400 w-4"></i> ${r.date} • ${r.location}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initPage();
+            renderRecords();
+        });
+    </script>
+</body>
+</html>
